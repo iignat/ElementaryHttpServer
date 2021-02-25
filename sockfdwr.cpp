@@ -1,6 +1,22 @@
-#include "scockfdwr.h"
+#include "sockfdwr.h"
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "sockfdwr.h"
 
-int set_nonblock(int fd)
+sockfdwr::sockfdwr()
+{
+
+}
+
+
+int sockfdwr::set_nonblock(int fd)
 {
   int flags;
   #if defined(O_NONBLOCK)
@@ -14,7 +30,7 @@ int set_nonblock(int fd)
 
 }
 
-ssize_t sock_fd_write(int sock, void *buf, ssize_t buflen, int fd) {
+ssize_t sockfdwr::sock_fd_write(int sock, void *buf, ssize_t buflen, int fd) {
     ssize_t     size;
     struct msghdr   msg;
     struct iovec    iov;
@@ -56,7 +72,7 @@ ssize_t sock_fd_write(int sock, void *buf, ssize_t buflen, int fd) {
     return size;
 }
 
-ssize_t sock_fd_read(int sock, void *buf, ssize_t bufsize, int *fd) {
+ssize_t sockfdwr::sock_fd_read(int sock, void *buf, ssize_t bufsize, int *fd) {
 
     ssize_t     size;
 

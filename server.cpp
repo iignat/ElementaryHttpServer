@@ -1,10 +1,12 @@
-#include "server.h"
-#include "scockfdwr.h"
+#include <iostream>
+#include <cstring>
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <iostream>
+#include <fcntl.h>
+#include "server.h"
+#include "sockfdwr.h"
 
 #define MAX_EVENTS 128
 #define MASTER 0
@@ -41,7 +43,7 @@ int server::add_worker() {
 
               while(1) {
                   memset(buf,0,sizeof(buf));
-                  size_t size = sock_fd_read(soc[SLAVE], buf, sizeof(buf), &fd);
+                  size_t size = sockfdwr::sock_fd_read(soc[SLAVE], buf, sizeof(buf), &fd);
                   if (size >0 && fd!=-1){
                       write(fd, buf, strlen(buf));
                       close(fd);
@@ -61,7 +63,7 @@ int server::add_worker() {
 
 
                   fd=open("/home/box/pairsock.test", O_CREAT | O_WRONLY| O_APPEND);
-                  size_t size=sock_fd_write(soc[MASTER],buf,strlen(buf),fd);
+                  size_t size=sockfdwr::sock_fd_write(soc[MASTER],buf,strlen(buf),fd);
                   sleep(1);
               }
           break;
@@ -88,7 +90,7 @@ void server::run() {
       exit(EXIT_FAILURE);
   }
 
-  set_nonblock(ss);
+  sockfdwr::set_nonblock(ss);
 
   if (listen(ss, SOMAXCONN) == SOCKET_COMMON_ERROR) {
       std::cerr << "Error on start listen server socket" << std::endl;
@@ -109,7 +111,7 @@ void server::run() {
       for(unsigned int i=0;i<N;i++) {
           if(Events[i].data.fd==ss) {
               int cs=accept(ss,0,0);
-              set_nonblock(cs);
+              sockfdwr::set_nonblock(cs);
               Event.data.fd=cs;
               epoll_ctl(Epoll,EPOLL_CTL_ADD,cs,&Event);
             }else{

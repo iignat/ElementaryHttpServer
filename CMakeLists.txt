@@ -5,4 +5,4 @@ project(ElementaryHttpServer LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(ElementaryHttpServer main.cpp server.cpp scockfdwr.cpp)
+add_executable(ElementaryHttpServer main.cpp server.cpp sockfdwr.cpp)

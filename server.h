@@ -9,6 +9,8 @@ class server
 {
 private:
    std::vector<worker> workers;
+   std::vector<worker>::iterator this_worker;
+   worker & next_worker();
 public:
   server();
   void run(std::string host, unsigned port);

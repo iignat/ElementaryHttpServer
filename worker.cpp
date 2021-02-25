@@ -23,7 +23,6 @@ worker::worker(std::string _httpdir)
             std::cerr<< strerror(errno)<<std::endl;
             return;
       }
-      std::cout<< "Socket pair created"<<std::endl;
 
       pid=fork();
 
@@ -40,6 +39,8 @@ worker::worker(std::string _httpdir)
                   if (size >0 && fd!=-1){
                       int recs=recv(fd,buf,BUFFER_SIZE,MSG_NOSIGNAL);
                       if(recs>0) {
+                          std::cout<<"Processed by worker "<<getpid()<<std::endl;
+                          std::cout<<buf<<std::endl;
                           send(fd,buf,recs,MSG_NOSIGNAL);
                           memset(buf,0,sizeof(buf));
                           shutdown(fd,SHUT_RDWR);

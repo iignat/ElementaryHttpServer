@@ -1,14 +1,15 @@
 #include <iostream>
 #include <cstring>
+#include <unistd.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <netinet/in.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include "server.h"
-#include "sockfdwr.h"
+#include <arpa/inet.h>
 
-#define MAX_EVENTS 128
+#include "server.h"
+
+#define MAX_EVENTS 16
 #define MASTER 0
 #define SLAVE 1
 static const int SOCKET_COMMON_ERROR = -1;
@@ -17,6 +18,7 @@ static const int BUFFER_SIZE = 2048;
 
 server::server()
 {
+
 }
 
 int server::set_nonblock(int fd)
@@ -38,8 +40,12 @@ int server::add_worker() {
    workers.push_back(worker());
    return get_workers_count();
 }
+int server::add_worker(std::string httpdir){
+  workers.push_back(worker(httpdir));
+  return get_workers_count();
+}
 
-void server::run() {
+void server::run(std::string host, unsigned port) {
   int ss = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (ss == SOCKET_COMMON_ERROR) {
       std::cerr << "Error on open server socket";
@@ -48,8 +54,8 @@ void server::run() {
 
   struct sockaddr_in sai;
   sai.sin_family = AF_INET;
-  sai.sin_port = htons(12345);
-  sai.sin_addr.s_addr = htonl(INADDR_ANY);
+  sai.sin_port = htons(port);
+  sai.sin_addr.s_addr = inet_addr(host.c_str());
   if (bind(ss, (struct sockaddr*) (&sai), sizeof(sai)) == SOCKET_COMMON_ERROR) {
       std::cerr << "Error on bind server socket";
       close(ss);
@@ -77,23 +83,18 @@ void server::run() {
       for(unsigned int i=0;i<N;i++) {
           if(Events[i].data.fd==ss) {
               int cs=accept(ss,0,0);
+
               set_nonblock(cs);
-              Event.data.fd=cs;
-              epoll_ctl(Epoll,EPOLL_CTL_ADD,cs,&Event);
-              std::cout<<"SS event received. EPOLL armed."<<std::endl;
+
+              epoll_event cEvent;
+              cEvent.events=EPOLLIN | EPOLLET;
+              //cEvent.events=EPOLLONESHOT;
+              cEvent.data.fd=cs;
+
+              epoll_ctl(Epoll,EPOLL_CTL_ADD,cs,&cEvent);
             }else{
               char buff[5];
-              std::cout<<"CS event received. Sending to worker."<<std::endl;
               workers[0].sock_fd_write(buff,2,Events[i].data.fd);
-              /*char Buffer[BUFFER_SIZE];
-              int recs=recv(Events[i].data.fd,Buffer,BUFFER_SIZE,MSG_NOSIGNAL);
-              if(recs==0 && errno!=EAGAIN) {
-                  shutdown(Events[i].data.fd,SHUT_RDWR);
-                  close(Events[i].data.fd);
-                }else if(recs>0) {
-                  send(Events[i].data.fd,Buffer,recs,MSG_NOSIGNAL);
-                  memset(Buffer,0,sizeof(Buffer));
-                }*/
             }
         }
   }

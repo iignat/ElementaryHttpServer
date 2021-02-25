@@ -13,8 +13,9 @@ worker::~worker()
   //close(soc[SLAVE]);
 }
 
-worker::worker()
+worker::worker(std::string _httpdir)
 {
+      httpdir=_httpdir;
       int z;
       z = socketpair (AF_UNIX,SOCK_STREAM,0,soc);
 
@@ -37,15 +38,22 @@ worker::worker()
               while(1) {
                   size_t size = sock_fd_read(buf, sizeof(buf), &fd);//soc[SLAVE]
                   if (size >0 && fd!=-1){
-                      std::cout<<"Received data from server. Processing "<<std::endl;
                       int recs=recv(fd,buf,BUFFER_SIZE,MSG_NOSIGNAL);
+                      if(recs>0) {
+                          send(fd,buf,recs,MSG_NOSIGNAL);
+                          memset(buf,0,sizeof(buf));
+                          shutdown(fd,SHUT_RDWR);
+                          close(fd);
+                       }
+
+                      /*int recs=recv(fd,buf,BUFFER_SIZE,MSG_NOSIGNAL);
                       if(recs==0 && errno!=EAGAIN) {
                           shutdown(fd,SHUT_RDWR);
                           close(fd);
                         }else if(recs>0) {
                           send(fd,buf,recs,MSG_NOSIGNAL);
                           memset(buf,0,sizeof(buf));
-                        }
+                        }*/
                   }
              }
 

@@ -17,60 +17,26 @@ static const int BUFFER_SIZE = 2048;
 
 server::server()
 {
+}
+
+int server::set_nonblock(int fd)
+{
+  int flags;
+  #if defined(O_NONBLOCK)
+      if (-1 == (flags = fcntl(fd, F_GETFL, 0)))
+          flags = 0;
+      return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+  #else
+      flags = 1;
+      return ioctl(fd, FIOBIO, &flags);
+  #endif
 
 }
 
+
 int server::add_worker() {
-        int z, soc[2],fd;
-        char buf[1024];
-        pid_t pid;
-
-        z = socketpair (AF_UNIX,SOCK_STREAM,0,soc);
-
-        if ( z == -1 ) {
-            std::cerr<< strerror(errno)<<std::endl;
-            return -1;
-        }
-
-      pid=fork();
-
-      switch (pid){
-          case -1:
-                  std::cerr<<strerror(errno)<<std::endl;
-          break;
-          case 0:
-              close(soc[MASTER]);
-
-              while(1) {
-                  memset(buf,0,sizeof(buf));
-                  size_t size = sockfdwr::sock_fd_read(soc[SLAVE], buf, sizeof(buf), &fd);
-                  if (size >0 && fd!=-1){
-                      write(fd, buf, strlen(buf));
-                      close(fd);
-                  }
-             }
-
-          break;
-          default:
-              close(soc[SLAVE]);
-
-              time_t rawtime;
-              struct tm * timeinfo;
-              while(1) {
-                  time ( &rawtime );
-                  timeinfo = localtime ( &rawtime );
-                  sprintf (buf, "Current local time and date: %s\0", asctime (timeinfo) );
-
-
-                  fd=open("/home/box/pairsock.test", O_CREAT | O_WRONLY| O_APPEND);
-                  size_t size=sockfdwr::sock_fd_write(soc[MASTER],buf,strlen(buf),fd);
-                  sleep(1);
-              }
-          break;
-      }
-      close(soc[MASTER]);
-      close(soc[SLAVE]);
-      return 0;
+   workers.push_back(worker());
+   return get_workers_count();
 }
 
 void server::run() {
@@ -90,7 +56,7 @@ void server::run() {
       exit(EXIT_FAILURE);
   }
 
-  sockfdwr::set_nonblock(ss);
+  set_nonblock(ss);
 
   if (listen(ss, SOMAXCONN) == SOCKET_COMMON_ERROR) {
       std::cerr << "Error on start listen server socket" << std::endl;
@@ -111,11 +77,15 @@ void server::run() {
       for(unsigned int i=0;i<N;i++) {
           if(Events[i].data.fd==ss) {
               int cs=accept(ss,0,0);
-              sockfdwr::set_nonblock(cs);
+              set_nonblock(cs);
               Event.data.fd=cs;
               epoll_ctl(Epoll,EPOLL_CTL_ADD,cs,&Event);
+              std::cout<<"SS event received. EPOLL armed."<<std::endl;
             }else{
-              char Buffer[BUFFER_SIZE];
+              char buff[5];
+              std::cout<<"CS event received. Sending to worker."<<std::endl;
+              workers[0].sock_fd_write(buff,2,Events[i].data.fd);
+              /*char Buffer[BUFFER_SIZE];
               int recs=recv(Events[i].data.fd,Buffer,BUFFER_SIZE,MSG_NOSIGNAL);
               if(recs==0 && errno!=EAGAIN) {
                   shutdown(Events[i].data.fd,SHUT_RDWR);
@@ -123,7 +93,7 @@ void server::run() {
                 }else if(recs>0) {
                   send(Events[i].data.fd,Buffer,recs,MSG_NOSIGNAL);
                   memset(Buffer,0,sizeof(Buffer));
-                }
+                }*/
             }
         }
   }

@@ -65,8 +65,13 @@ httpreqparser::httpreqparser(std::string httpreqtxt)
             httpreq[v[0]]+=v[k];
             if(k!=v.size()-1)httpreq[v[0]]+=":";
           }
-        std::string s=httpreq[v[0]];
-        strutils::trim(s);
-        httpreq[v[0]]=s;
+        if(v.size()==1) {
+            httpreq["DATA"]+=v[0];
+          } else {
+
+              std::string s=httpreq[v[0]];
+              strutils::trim(s);
+              httpreq[v[0]]=s;
+          }
       }
 }

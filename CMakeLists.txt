@@ -5,4 +5,4 @@ project(ElementaryHttpServer LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(ElementaryHttpServer main.cpp server.cpp worker.cpp)
+add_executable(ElementaryHttpServer main.cpp server.cpp worker.cpp httpreqparser.cpp)

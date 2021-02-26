@@ -1,7 +1,9 @@
-#include <iostream>
+﻿#include <iostream>
 #include <cstring>
 #include <unistd.h>
+#include <sys/types.h>
 #include "worker.h"
+#include "httpreqparser.h"
 
 #define MASTER 0
 #define SLAVE 1
@@ -32,29 +34,34 @@ worker::worker(std::string _httpdir)
           break;
           case 0:
               close(soc[MASTER]);
-              char buf[BUFFER_SIZE];
-              int fd;
+
+
               while(1) {
+                  char buf[BUFFER_SIZE];
+                  int fd;
+                  fd_set rfds;
+                  FD_ZERO(&rfds);
+                  FD_SET(soc[SLAVE], &rfds);
+                  select(soc[SLAVE]+1,&rfds,NULL,NULL,NULL);
+                  if(!FD_ISSET(soc[SLAVE], &rfds))continue;
+
                   size_t size = sock_fd_read(buf, sizeof(buf), &fd);//soc[SLAVE]
                   if (size >0 && fd!=-1){
                       int recs=recv(fd,buf,BUFFER_SIZE,MSG_NOSIGNAL);
-                      if(recs>0) {
+                      if(recs==0 && errno!=EAGAIN) {
+                          shutdown(fd,SHUT_RDWR);
+                          close(fd);
+                        }else if(recs>0) {
                           std::cout<<"Processed by worker "<<getpid()<<std::endl;
-                          std::cout<<buf<<std::endl;
+
+                          for(auto &el:httpreqparser(std::string(buf)).httpreq){
+                              std::cout<<el.first<<"="<<el.second<<std::endl;
+                            }
                           send(fd,buf,recs,MSG_NOSIGNAL);
                           memset(buf,0,sizeof(buf));
                           shutdown(fd,SHUT_RDWR);
                           close(fd);
                        }
-
-                      /*int recs=recv(fd,buf,BUFFER_SIZE,MSG_NOSIGNAL);
-                      if(recs==0 && errno!=EAGAIN) {
-                          shutdown(fd,SHUT_RDWR);
-                          close(fd);
-                        }else if(recs>0) {
-                          send(fd,buf,recs,MSG_NOSIGNAL);
-                          memset(buf,0,sizeof(buf));
-                        }*/
                   }
              }
 

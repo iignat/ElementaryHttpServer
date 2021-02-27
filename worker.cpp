@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include "worker.h"
-#include "httpreqparser.h"
+#include "processor.h"
 
 #define MASTER 0
 #define SLAVE 1
@@ -18,6 +18,7 @@ worker::~worker()
 worker::worker(std::string _httpdir)
 {
       httpdir=_httpdir;
+      processor proc=processor(httpdir);
       int z;
       z = socketpair (AF_UNIX,SOCK_STREAM,0,soc);
 
@@ -35,7 +36,6 @@ worker::worker(std::string _httpdir)
           case 0:
               close(soc[MASTER]);
 
-
               while(1) {
                   char buf[BUFFER_SIZE];
                   int fd;
@@ -52,12 +52,12 @@ worker::worker(std::string _httpdir)
                           shutdown(fd,SHUT_RDWR);
                           close(fd);
                         }else if(recs>0) {
-                          std::cout<<"Processed by worker "<<getpid()<<std::endl;
 
-                          for(auto &el:httpreqparser(std::string(buf)).httpreq){
-                              std::cout<<el.first<<"="<<el.second<<std::endl;
-                            }
-                          send(fd,buf,recs,MSG_NOSIGNAL);
+                          std::string ans=proc.process(std::string(buf));
+                          std::cout<<"Processed by worker "<<getpid()<<std::endl;
+                          std::cout<<"Request:"<<std::endl<<buf<<std::endl;
+                          std::cout<<"Response:"<<std::endl<<ans<<std::endl;
+                          send(fd,ans.c_str(),ans.length(),MSG_NOSIGNAL);
                           memset(buf,0,sizeof(buf));
                           shutdown(fd,SHUT_RDWR);
                           close(fd);

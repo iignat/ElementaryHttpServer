@@ -43,6 +43,12 @@ int main(int argc,char ** argv)
       s->add_worker(dir);
       s->add_worker(dir);
       s->add_worker(dir);
+      s->add_worker(dir);
+      s->add_worker(dir);
+      s->add_worker(dir);
+      s->add_worker(dir);
+      s->add_worker(dir);
+      s->add_worker(dir);
       cout<<"Workers count:"<<s->add_worker(dir)<<endl;
 
       cout<<"Server starts host:"<<ip<<" port:"<<port<<" dir:"<<dir<<endl;

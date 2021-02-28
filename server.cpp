@@ -18,13 +18,13 @@ static const int BUFFER_SIZE = 2048;
 
 server::server()
 {
+  worker_idx=0;
 }
 
 worker & server::next_worker() {
-  this_worker++;
-  if(this_worker<workers.begin() || this_worker>workers.end())
-      this_worker=workers.begin();
-  return *this_worker;
+  worker_idx++;
+  if(worker_idx>workers.size()-1)worker_idx=0;
+  return workers[worker_idx];
 }
 
 int server::set_nonblock(int fd)
@@ -98,7 +98,12 @@ void server::run(std::string host, unsigned port) {
               epoll_ctl(Epoll,EPOLL_CTL_ADD,cs,&cEvent);
             }else{
               char buff[2];
-              next_worker().sock_fd_write(buff,1,Events[i].data.fd);
+              //ssize_t res=-1;
+              //while(res<0) {
+                next_worker().sock_fd_write(buff,1,Events[i].data.fd);
+              //}
+              epoll_ctl(Epoll,EPOLL_CTL_DEL,Events[i].data.fd,NULL);
+              close(Events[i].data.fd);
             }
         }
   }

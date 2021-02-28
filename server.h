@@ -8,8 +8,8 @@
 class server
 {
 private:
+  unsigned int worker_idx;
    std::vector<worker> workers;
-   std::vector<worker>::iterator this_worker;
    worker & next_worker();
 public:
   server();

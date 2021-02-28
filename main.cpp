@@ -2,6 +2,8 @@
 #include <fstream>
 #include <ctype.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "server.h"
 
 using namespace std;

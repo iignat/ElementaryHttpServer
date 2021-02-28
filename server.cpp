@@ -47,10 +47,6 @@ int server::add_worker() {
 }
 int server::add_worker(std::string httpdir){
   workers.push_back(worker(httpdir));
-  for(auto &el:workers){
-      std::cout<<el.pid<<" ";
-    }
-  std::cout<<std::endl;
   return get_workers_count();
 }
 
@@ -58,7 +54,7 @@ void server::run(std::string host, unsigned port) {
   int ss = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (ss == SOCKET_COMMON_ERROR) {
       std::cerr << "Error on open server socket";
-      exit(EXIT_FAILURE);
+      return;
   }
 
   struct sockaddr_in sai;
@@ -68,7 +64,7 @@ void server::run(std::string host, unsigned port) {
   if (bind(ss, (struct sockaddr*) (&sai), sizeof(sai)) == SOCKET_COMMON_ERROR) {
       std::cerr << "Error on bind server socket";
       close(ss);
-      exit(EXIT_FAILURE);
+      return;
   }
 
   set_nonblock(ss);
@@ -76,7 +72,7 @@ void server::run(std::string host, unsigned port) {
   if (listen(ss, SOMAXCONN) == SOCKET_COMMON_ERROR) {
       std::cerr << "Error on start listen server socket" << std::endl;
       close(ss);
-      exit(EXIT_FAILURE);
+      return;
   }
   std::cout << "Ready for connection..." << std::endl;
 

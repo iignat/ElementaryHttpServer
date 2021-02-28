@@ -55,6 +55,9 @@ httpreqparser::httpreqparser(std::string httpreqtxt)
       httpreq["PROTO"]=v[2];
      }else{
         std::cout<<"Incorrect HTTP request first line:"<<httpreqbylines[0]<<std::endl;
+        httpreq["METHOD"]="GET";
+        httpreq["PATH"]="/";
+        httpreq["PROTO"]="HTTP/1.0";
      }
 
     for(unsigned int i=1;i<httpreqbylines.size();i++) {

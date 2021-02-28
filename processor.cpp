@@ -56,7 +56,7 @@ std::string processor::process(std::string httpreqtext){
 
   if(ps.httpreq["METHOD"]!="GET" && ps.httpreq["METHOD"]!="HEAD") return rs.prepare(405,RESP405);
 
-  if(ps.httpreq["PATH"]=="/")ps.httpreq["PATH"]="/index.html";
+  if(ps.httpreq["PATH"]=="/" || ps.httpreq["PATH"]=="")ps.httpreq["PATH"]="/index.html";
   ps.httpreq["PATH"]=httpdir+ps.httpreq["PATH"];
   if(exists(ps.httpreq["PATH"])){
       rs.httprsp["Content-Type"]=get_mime_type(ps.httpreq["PATH"]);

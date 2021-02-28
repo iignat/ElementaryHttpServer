@@ -30,20 +30,22 @@ int main(int argc,char ** argv)
         default:
           abort ();
         }
+  pid_t p=fork();
+  switch(p) {
+  case 0:
+      ofstream ofs("/tmp/logfile");
+      ofstream ofs1("/tmp/errlogfile");
+      cout.rdbuf(ofs.rdbuf());
+      cerr.rdbuf(ofs1.rdbuf());
+      server *s=new server();
+      s->add_worker(dir);
+      s->add_worker(dir);
+      s->add_worker(dir);
+      cout<<"Workers count:"<<s->add_worker(dir)<<endl;
 
-  ofstream ofs("/tmp/logfile");
-  ofstream ofs1("/tmp/errlogfile");
-  cout.rdbuf(ofs.rdbuf());
-  cerr.rdbuf(ofs1.rdbuf());
-
-  server *s=new server();
-  s->add_worker(dir);
-  s->add_worker(dir);
-  s->add_worker(dir);
-  cout<<"Workers count:"<<s->add_worker(dir)<<endl;
-
-  cout<<"Server starts host:"<<ip<<" port:"<<port<<" dir:"<<dir<<endl;
-  s->run(ip,port);
-
+      cout<<"Server starts host:"<<ip<<" port:"<<port<<" dir:"<<dir<<endl;
+      s->run(ip,port);
+      break;
+  }
   return 0;
 }

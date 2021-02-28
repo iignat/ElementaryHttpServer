@@ -53,6 +53,14 @@ httpreqparser::httpreqparser(std::string httpreqtxt)
       httpreq["METHOD"]=v[0];
       httpreq["PATH"]=v[1];
       httpreq["PROTO"]=v[2];
+
+      v.resize(0);
+      strutils::split(httpreq["PATH"],v,"?");
+      if(v.size()>1) {
+          httpreq["PATH"]=v[0];
+          httpreq["GETPARAMS"]=v[1];
+        }
+
      }else{
         std::cout<<"Incorrect HTTP request first line:"<<httpreqbylines[0]<<std::endl;
         httpreq["METHOD"]="GET";

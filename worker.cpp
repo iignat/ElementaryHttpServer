@@ -102,7 +102,6 @@ ssize_t worker::sock_fd_write(void *buf, ssize_t buflen, int fd) {
         cmsg->cmsg_level = SOL_SOCKET;
         cmsg->cmsg_type = SCM_RIGHTS;
 
-        std::cout<<"passing fd "<< fd<<std::endl;
         *((int *) CMSG_DATA(cmsg)) = fd;
     } else {
         msg.msg_control = NULL;
@@ -158,7 +157,6 @@ ssize_t worker::sock_fd_read(void *buf, ssize_t bufsize, int *fd) {
             }
 
             *fd = *((int *) CMSG_DATA(cmsg));
-            std::cout<<"received fd"<<*fd<<std::endl;
         } else
             *fd = -1;
     } else {

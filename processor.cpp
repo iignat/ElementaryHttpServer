@@ -45,6 +45,7 @@ std::string processor::readfile(const std::string& filename) {
     std::string s(size, ' ');
     f.seekg(0);
     f.read(&s[0], size);
+    f.close();
     return s;
 }
 

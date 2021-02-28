@@ -32,12 +32,17 @@ std::string processor::readfile(const std::string& filename) {
 std::string processor::process(std::string httpreqtext){
   httpreqparser ps=httpreqparser(httpreqtext);
   httprspcompiler rs=httprspcompiler(ps);
-  //if(ps.httpreq["PROTO"]!="HTTP/1.0") return rs.prepare(505,RESP505);
+  rs.httprsp["PROTO"]=ps.httpreq["PROTO"];
+  rs.httprsp["Content-Type"]="text/html;charset=UTF-8";
+
   if(ps.httpreq["METHOD"]!="GET" && ps.httpreq["METHOD"]!="HEAD") return rs.prepare(405,RESP405);
+
   if(ps.httpreq["PATH"]=="/")ps.httpreq["PATH"]="/index.html";
   ps.httpreq["PATH"]=httpdir+ps.httpreq["PATH"];
-  if(exists(ps.httpreq["PATH"]))return rs.prepare(200,readfile(ps.httpreq["PATH"]));
-      else return rs.prepare(404,RESP404);
+  if(exists(ps.httpreq["PATH"])){
+      rs.httprsp["Content-Type"]=ps.httpreq["Content-Type"];
+      return rs.prepare(200,readfile(ps.httpreq["PATH"]));
+  }else return rs.prepare(404,RESP404);
   return rs.prepare(500,RESP500);
 }
 

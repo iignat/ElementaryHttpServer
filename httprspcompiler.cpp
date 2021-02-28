@@ -3,7 +3,7 @@
 #include <cstdlib>
 
 std::string httprspcompiler::get_head(unsigned code) {
-  std::string s=httpreqps.httpreq["PROTO"]+" "+std::to_string(code)+" ";
+  std::string s=httprsp["PROTO"]+" "+std::to_string(code)+" ";
   switch(code) {
     case 200:
       s=s+"OK"+"\r\n";
@@ -21,7 +21,7 @@ std::string httprspcompiler::get_head(unsigned code) {
       s=s+"HTTP Version Not Supported"+"\r\n";
       break;
      default:
-      s=httpreqps.httpreq["PROTO"]+" 500 Internal Server Error\r\n";
+      s=httprsp["PROTO"]+" 500 Internal Server Error\r\n";
     }
 
   return s;
@@ -33,7 +33,7 @@ std::string httprspcompiler::prepare(unsigned code,std::string data){
   s+="Last-Modified: "+get_current_time()+"\r\n";
   s+="Connection: close \r\n";
   s+="Server: Elementary Http Server \r\n";
-  s+="Content-Type: text/html; charset=UTF-8 \r\n";
+  s+="Content-Type: "+httprsp["Content-Type"]+ "\r\n";
   s+="Content-Length: "+std::to_string(data.length())+" \r\n\r\n";  
   if(httpreqps.httpreq["METHOD"]!="HEAD")s+=data;
   s+="\r\n\r\n";

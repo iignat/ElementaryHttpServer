@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <cstring>
 #include <unistd.h>
+#include <errno.h>
 #include <sys/types.h>
 #include "worker.h"
 #include "processor.h"

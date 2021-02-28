@@ -19,6 +19,25 @@ bool processor::exists (const std::string& name) {
   return (stat (name.c_str(), &buffer) == 0);
 }
 
+std::string processor::get_mime_type(std::string &filename){
+  std::string extension="";
+  std::string::size_type idx = filename.rfind('.');
+  if(idx != std::string::npos)
+  {
+      extension = filename.substr(idx+1);
+  }
+
+  if(extension=="jpg")return "image/jpeg";
+  if(extension=="ico")return "image/vnd.microsoft.icon";
+  if(extension=="tif" || extension=="tiff")return "image/tiff";
+  if(extension=="png")return "image/png";
+  if(extension=="gif")return "image/gif";
+  if(extension=="wbmp")return "image/webp";
+  if(extension=="svg")return "image/svg+xml";
+
+  return "text/html";
+}
+
 std::string processor::readfile(const std::string& filename) {
     std::ifstream f(filename);
     f.seekg(0, std::ios::end);
@@ -40,7 +59,7 @@ std::string processor::process(std::string httpreqtext){
   if(ps.httpreq["PATH"]=="/")ps.httpreq["PATH"]="/index.html";
   ps.httpreq["PATH"]=httpdir+ps.httpreq["PATH"];
   if(exists(ps.httpreq["PATH"])){
-      rs.httprsp["Content-Type"]=ps.httpreq["Content-Type"];
+      rs.httprsp["Content-Type"]=get_mime_type(ps.httpreq["PATH"]);
       return rs.prepare(200,readfile(ps.httpreq["PATH"]));
   }else return rs.prepare(404,RESP404);
   return rs.prepare(500,RESP500);

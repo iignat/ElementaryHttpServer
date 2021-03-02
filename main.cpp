@@ -12,12 +12,13 @@ int main(int argc,char ** argv)
 {
     string ip = "127.0.0.1";
     unsigned port = 12345;
+    unsigned forks=4;
     string dir="/tmp" ;
     int c;
 
     opterr = 0;
 
-    while ((c = getopt (argc, argv, "h:p:d:")) != -1)
+    while ((c = getopt (argc, argv, "h:p:d:f:")) != -1)
       switch (c)
         {
         case 'h':
@@ -25,6 +26,9 @@ int main(int argc,char ** argv)
           break;
         case 'p':
           port=atoi(optarg);
+          break;
+        case 'f':
+          forks=atoi(optarg);
           break;
         case 'd':
           dir = string(optarg);
@@ -40,16 +44,8 @@ int main(int argc,char ** argv)
       cout.rdbuf(ofs.rdbuf());
       cerr.rdbuf(ofs1.rdbuf());
       server *s=new server();
-      s->add_worker(dir);
-      s->add_worker(dir);
-      s->add_worker(dir);
-      s->add_worker(dir);
-      s->add_worker(dir);
-      s->add_worker(dir);
-      s->add_worker(dir);
-      s->add_worker(dir);
-      s->add_worker(dir);
-      cout<<"Workers count:"<<s->add_worker(dir)<<endl;
+      for (unsigned i=0;i<forks;i++)s->add_worker(dir);
+      cout<<"Workers count:"<<s->get_workers_count()<<endl;
 
       cout<<"Server starts host:"<<ip<<" port:"<<port<<" dir:"<<dir<<endl;
       s->run(ip,port);
